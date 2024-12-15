@@ -1,29 +1,39 @@
 # https://adventofcode.com/2024/day/15
 # Day 15: Warehouse Woes
 
-def solve_puzzle(data):
-    A, B = data.split('\n\n')
-    boxes = set()
-    walls = set()
-    for i, r in enumerate(A.split()):
-        for j, v in enumerate(r):
-            z = i + 1j * j
-            if v == 'O': boxes.add(z)
-            if v == '#': walls.add(z)
-            if v == '@': robot = z
-    for move in B.replace('\n', ''):
-        move = 1j ** 'v>^<'.find(move)
-        box = 0
-        z = robot + move
-        while z in boxes:
-            box = box or z
-            z += move
-        if z not in walls:
-            if box:
-                boxes.remove(box)
-                boxes.add(z)
-            robot += move
-    yield int(sum(100 * z.real + z.imag for z in boxes))
+def solve(data):
+    data, moves = data.split('\n\n')
+    dir = (1, 0), (0, -1), (-1, 0), (0, 1)
+    for width in 1, 2:
+        area = []
+        for i, line in enumerate(data.split()):
+            area += [],
+            for j, v in enumerate(line):
+                if v == '@':
+                    r, c, v = i, j * width, '.'
+                area[-1] += [v] * width if v in '.#' else [*'[]'][:width]
+        for move in moves.replace('\n', ''):
+            dr, dc = dir['v<^>'.find(move)]
+            boxes = {}
+            bfs = {(r + dr, c + dc)}
+            while bfs:
+                pre, bfs = bfs, set()
+                for i, j in pre:
+                    if area[i][j] == '#':
+                        boxes['#'] = bfs = 0
+                        break
+                    if area[i][j] != '.':
+                        cols = [j] + [j + ' ['.find(area[i][j])] * (dr and width > 1)
+                        boxes.update({(i, j):area[i][j] for j in cols})
+                        bfs |= {(i + dr, j + dc) for j in cols}
+            if '#' not in boxes:
+                for i, j in boxes:
+                    area[i][j] = '.'
+                for i, j in boxes:
+                    area[i + dr][j + dc] = boxes[i, j]
+                r += dr
+                c += dc
+        yield sum(100 * i + j for i, row in enumerate(area) for j, v in enumerate(row) if v == '[')
 
 
 def inputs():
@@ -139,10 +149,9 @@ v><>vvv>v>v<v><><^^<v>>v<v<<<^<^>^^^v<<v>^^<^v>^v<>><^v^>>vv<^<^<v^v<<^v^v>^^<^^
 ><vv>vv<^<^^<><^<<<v<^>^^<<v>>^v>v>v^^v>>>v>>vvv>>v>^<>vvv<v>><v<v>^>v>>^^<>^^<<<>>^^vv^<<^vv^<<^><>>v>><v<<><>>^v<<>><^^^vvv>>>>v>^v>v<vv>v>v<>^>>^v<vv<><^^v^<><<^^^<^>^v<^v<>vv><<v^><><^^>^>v<vvvvv^^^vvv^<^v^v<v<<<<<><<v^v>>^^^^>>^v^<vv^vvv<>^v>v<^^^v>vvv>>^^^^<vv^>>>^^^v<v>>^^<>^><<>>v<<v<<><^>>^vvvvv^v<<><v>v<v^^<v^^^<^<<>v>v>v<>^<^>>^>^^^<<<v<^^^>v^>v>^v^v>>^<<>^><v^v^^>^v<<^v>^<v<v<>v<>^^<^<v<<>^><^<>^><v>>^v><<^>^^>>vv^^<><^v><<>^<v^vv><^<^v><>>>>^<^>><>v<^vvv>^v<<<<^vvv>><vv>v^^<vvvv<v^^<v^^v^<>>^^v^><vvv>^>^^^^^^<v>v>><^^><><>v<<><>^<^><<vvvv^>^vvv>><^>v<>^v><vv<^^<><^<<<^v^^>^><^^v><v<<<v^>>^<<^<v><^vv<<><^>v^<<^v<v><^>v^>>^^v^><v>>><v<vv^v^^vv>^vvv^>v>>v^^>><<<^^^v<v>><vv^v<vv><><<<^>>>v^<v^>>vv^>>v>^<^^<^v<^>^<v^^vv>v^v^^>><>^vv<>^^vv><>^v^^^><<>^v><>v<v^^<^v<<>^^v<v^^>><vv<<<^^>v^^><>v<^^^v<^><<^<^vv>vv<<^><^><^><<>vv<><>v<v<v>^^^^><^vvvv<>>>vv><>^>^^>^<<v^<<v^<<^^>>>>v^v^v^vvv>^<v><v^>vv^<^^^<>v>>^<><<<^^^^>>vv><>^^^^>>v<<v>^<<><vvvv<<^<^<vvv>>><<<<^>vv^<^<v^>v^>>>^vv^v><
 """
 
-from time import *
-start_time = time()
+
+from time import time
+start = time()
 for data in inputs():
-    print(*solve_puzzle(data.strip()))
-end_time = time()
-elapsed_time = end_time - start_time
-print(f"Elapsed time: {elapsed_time:.2f} seconds")
+    print(*solve(data.strip()))
+print(f"Elapsed time: {time() - start:.2f} seconds")

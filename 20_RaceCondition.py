@@ -1,39 +1,33 @@
 # https://adventofcode.com/2024/day/20
 # Day 20: Race Condition
 
-from functools import *
-from typing import Counter
-
-def solve(data: str):
+def solve(K: int, data: str):
     A = {i + 1j * j: v for i, r in enumerate(data.split()) for j, v in enumerate(r)}
     S, E = (next(pos for pos, cell in A.items() if cell == ch) for ch in 'SE')
-    def sssp(hi):
-        bfs = [(0, S)]
-        vis = {S}
-        for d, u in bfs:
-            if hi and d > hi:
-                continue
-            if u == E:
-                return d
-            for k in range(4):
-                v = u + 1j ** k
-                if A.get(v, '#') != '#' and v not in vis:
-                    bfs.append((d + 1, v))
-                    vis.add(v)
-    best = sssp(0)
-    yield best
-    part1 = Counter()
-    for z in A:
-        if A[z] == '#':
-            A[z] = '.'
-            part1[sssp(best)] += 1
-            A[z] = '#'
-    yield sum(v for k, v in part1.items() if best - k >= 100)
+    bfs = [[S]]
+    dst = {S:0}
+    for p in bfs:
+        if p[-1] == E:
+            break
+        for k in range(4):
+            z = p[-1] + 1j ** k
+            if A.get(z, '#') != '#' and z not in dst:
+                bfs.append(p + [z])
+                dst[z] = len(p) + 1
+    for n in 2, 20:
+        res = 0
+        for z in p:
+            for i in range(-n, n + 1):
+                m = n - abs(i)
+                for j in range(-m, m + 1):
+                    y = z + i + 1j * j
+                    res += A.get(y, '#') != '#' and dst[y] - dst[z] - abs(i) - abs(j) >= K
+        print(f'dist saving >= {K},\tmax cheat time {n} ps\t: {res}')
 
 
 def inputs():
 
-    yield """
+    yield 50, """
 ###############
 #...#...#.....#
 #.#.#.#.#.###.#
@@ -51,7 +45,7 @@ def inputs():
 ###############
 """
 
-    yield """
+    yield 100, """
 #############################################################################################################################################
 #...#.........#...#.....#...#...#.........#.......#...#.....#...#...#...#...#.....#.....###...#.............#...#...#.....###...###.........#
 #.#.#.#######.#.#.#.###.#.#.#.#.#.#######.#.#####.#.#.#.###.#.#.#.#.#.#.#.#.#.###.#.###.###.#.#.###########.#.#.#.#.#.###.###.#.###.#######.#
@@ -196,9 +190,8 @@ def inputs():
 """
 
 
-from itertools import accumulate
 from time import time
 start = time()
-for data in inputs():
-    print(*solve(data.strip()))
+for K, data in inputs():
+    solve(K, data.strip())
 print(f"Elapsed time: {time() - start:.2f} seconds")

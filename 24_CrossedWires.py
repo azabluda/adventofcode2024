@@ -31,6 +31,22 @@ def solve(data: str):
         or [z in ZZ[1:], z in in_or[1] or {x[0], y[0], z[0]}.isdisjoint('xyz')][op == xor]]
     print(','.join(sorted(wrong)))
 
+    # BONUS: visualize graph
+    import os
+    import webbrowser
+    from pyvis.network import Network
+    file_path = os.path.abspath(f'out/graph_{time()}.html')
+    os.makedirs(os.path.dirname(file_path), exist_ok=True)
+    E = {e for x, op, y, _, z in split(data.split('\n\n')[1]) for e in [(x, op), (y, op), (op, z)]}
+    V = {v for e in E for v in e}
+    net = Network(notebook=True, directed=True, cdn_resources='remote')
+    net.add_nodes(V)
+    net.add_edges(E)
+    net.set_options('const options = { "layout": { "hierarchical": { "enabled": true } } }')
+    #net.show_buttons()
+    net.show(file_path)
+    webbrowser.open(f'file://{file_path}')
+
 
 def inputs():
     yield '''

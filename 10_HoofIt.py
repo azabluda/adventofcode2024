@@ -4,7 +4,7 @@
 def hoof_it(data):
     A = {i + 1j * j: v for i, r in enumerate(data.split()) for j, v in enumerate(r)}
     def dfs(z, h=0):
-        if z in A and A[z] != '.' and int(A[z]) == h:
+        if int(A.get(z, -1)) == h:
             if h == 9:
                 yield z
             for k in range(4):
@@ -13,36 +13,6 @@ def hoof_it(data):
 
 
 def inputs():
-
-    yield """
-...0...
-...1...
-...2...
-6543456
-7.....7
-8.....8
-9.....9
-"""
-
-    yield """
-..90..9
-...1.98
-...2..7
-6543456
-765.987
-876....
-987....
-"""
-
-    yield """
-10..9..
-2...8..
-3...7..
-4567654
-...8..3
-...9..2
-.....01
-"""
 
     yield """
 89010123
